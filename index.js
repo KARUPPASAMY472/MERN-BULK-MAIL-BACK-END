@@ -1,86 +1,47 @@
-const express = require("express")
-const cors = require("cors")
-const mongoose = require("mongoose")
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
 const nodemailer = require("nodemailer");
 
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-const app = express()
-app.use(cors())
-app.use(express.json())
+// ✅ MongoDB Atlas connection (direct link)
+mongoose.connect("mongodb+srv://mksamy:12345@cluster0.hh7j086.mongodb.net/sendgmail?appName=Cluster0")
+  .then(() => console.log("Connected to MongoDB"))
+  .catch(() => console.log("Database connection failed"));
 
-mongoose.connect("mongodb+srv://mksamy:12345@cluster0.hh7j086.mongodb.net/sendgmail?appName=Cluster0").then(function () {
-    console.log("connect to DataBase successfully")
-}).catch(()=>console.log("database conected Failed"))
+const credential = mongoose.model("credential", {}, "bulkmail");
 
+app.post("/sendemail", async (req, res) => {
+  const { msg, emailList } = req.body;
 
-const credential = mongoose.model("credential", {}, "bulkmail")
-
-
-
-
-
-
-
-app.post("/sendemail", function (req, res) {
-    
-    var msg = req.body.msg
-    var emailList = req.body.emailList
-
-    credential.find().then((data) => {
+  try {
+    const data = await credential.find();
     const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: data[0].toJSON().user,
-            pass: data[0].toJSON().pass,
-        },
+      service: "gmail",
+      auth: {
+        user: data[0].toJSON().user,
+        pass: data[0].toJSON().pass,
+      },
     });
 
-        new Promise(async function (resolve, reject) {
-        
-            try {
-        
-    for (var i = 0; i<emailList.length; i++)
-    {
-
-    await transporter.sendMail(
-    {
+    for (const email of emailList) {
+      await transporter.sendMail({
         from: "mkaruppas477@gmail.com",
-        to: emailList[i],
-        subject: "A message is me send",
-        text:msg
-    }
-        )
-        console.log("email to send line to line",emailList[i])
-    }
-
-    resolve("success")
+        to: email,
+        subject: "A message from BulkMail App",
+        text: msg,
+      });
+      console.log("Email sent:", email);
     }
 
-    catch (error)
-    {
-        reject(fail)
-    }
+    res.send(true);
+  } catch (error) {
+    console.error(error);
+    res.send(false);
+  }
+});
 
-        
-    }).then(function ()
-    {
-        res.send(true)
-    }).catch(function () {
-    res.send(false)
-})
-    
-}).catch((error) =>
-{
-    console.log(error)
-})
-    
-
-
-
-  
-})
-
-app.listen(5000, function ()
-{
-    console.log("server strated")
-})
+app.listen(5000, () => console.log("Server started on port 5000"));
