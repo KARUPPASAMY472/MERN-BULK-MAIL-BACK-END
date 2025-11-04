@@ -7,16 +7,14 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ MongoDB Atlas connection (direct link)
-mongoose.connect("mongodb+srv://mksamy:12345@cluster0.hh7j086.mongodb.net/sendgmail?appName=Cluster0")
-  .then(() => console.log("Connected to MongoDB"))
-  .catch(() => console.log("Database connection failed"));
+mongoose.connect("YOUR_MONGO_ATLAS_LINK")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(() => console.log("Database Failed"));
 
 const credential = mongoose.model("credential", {}, "bulkmail");
 
 app.post("/sendemail", async (req, res) => {
   const { msg, emailList } = req.body;
-
   try {
     const data = await credential.find();
     const transporter = nodemailer.createTransport({
@@ -27,11 +25,11 @@ app.post("/sendemail", async (req, res) => {
       },
     });
 
-    for (const email of emailList) {
+    for (let email of emailList) {
       await transporter.sendMail({
         from: "mkaruppas477@gmail.com",
         to: email,
-        subject: "A message from BulkMail App",
+        subject: "Bulk Mail App Message",
         text: msg,
       });
       console.log("Email sent:", email);
