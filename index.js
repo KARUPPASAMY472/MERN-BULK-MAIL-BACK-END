@@ -13,7 +13,7 @@ mongoose.connect("YOUR_MONGO_ATLAS_LINK")
 
 const credential = mongoose.model("credential", {}, "bulkmail");
 
-app.post("/sendemail", async (req, res) => {
+app.post("https://mern-bulk-mail-uvpu.vercel.app/sendemail", async (req, res) => {
   const { msg, emailList } = req.body;
   try {
     const data = await credential.find();
